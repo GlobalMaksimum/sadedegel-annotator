@@ -1,0 +1,14 @@
+{
+  "name": "sadedegel-annotator",
+  "version": "1.0.0",
+  "description": "Electron based labeling tool for extraction based summarization",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Murat Can Çakır",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^9.0.5"
+  }
+}

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Summary Annotator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+</head>
+
+<body>
+  <nav>
+    <div class="nav-wrapper">
+      <a class="brand-logo center">Summary Annotator</a>
+    </div>
+  </nav>
+  <div class="row" style="margin-top: 10px;">
+    <div class="col s10" style="text-align: left;">
+      <label>Filename: </label><span id="fileName"></span>
+    </div>
+    <div class="col s2" style="text-align: right;">
+      <label>File Count: </label><span id="fileCount"></span>
+    </div>
+  </div>
+  <div class="file-field input-field">
+    <div class="btn" style="margin-left: 0.5em;">
+      <span>File</span>
+      <input type="file" multiple id="files">
+    </div>
+    <div class="file-path-wrapper">
+      <input class="file-path validate" type="text" placeholder="Select folder">
+    </div>
+  </div>
+
+  <ul style="margin-bottom:10em; text-align:justified;"></ul>
+
+  <div
+    style="background-color:#FFFFFF; text-align: center; visibility: hidden; position:fixed; right:0;left:0; bottom:0.5em;">
+    <a class="waves-effect waves-light btn" id="nextFile" style="margin: 1em;" name="nextFile">Next File</a>
+    <br>
+    <a class="waves-effect waves-light btn red darken-2" style="" id="prevRound" name="prevRound">
+      << Prev Round</a>
+        <a class="waves-effect waves-light btn amber darken-3" style="" id="roundsIndicator"
+          name="roundsIndicator">Rounds: 1/1</a>
+        <a class="waves-effect waves-light btn green darken-2" id="nextRound" name="nextRound">Next Round >></a>
+  </div>
+
+
+  <script>
+    const electron = require('electron');
+    const { ipcRenderer } = electron;
+
+    const ul = document.querySelector('ul');
+    const body = document.querySelector('body');
+    const roundsIndicator = document.querySelector('#roundsIndicator');
+    const prevRound = document.querySelector('#prevRound');
+    const nextRound = document.querySelector('#nextRound');
+    const nextFile = document.querySelector('#nextFile');
+    const files = document.querySelector('#files');
+    const dialog = electron.remote.dialog
+    let round = 1;
+    const NOT_ELIMINATED = 9999
+    deletedInRound = [];
+    let maxRounds = round;
+    let fileCount = 0;
+
+    ul.addEventListener('mousedown', setEliminatedEvent);
+    prevRound.addEventListener('click', getPrevRound);
+    nextRound.addEventListener('click', getNextRound);
+    nextFile.addEventListener('click', getNextFile);
+    files.addEventListener('change', filesSelected);
+
+    document.defaultView.addEventListener("mousewheel", textZoom);
+
+    ipcRenderer.on('item:add', function (e, itemList, fileIndex, fileName) {
+
+      document.getElementById("fileName").textContent = fileName;
+      document.getElementById("fileCount").textContent = (fileIndex + 1) + "/" + fileCount;
+      ul.innerHTML = '';
+      round = 1;
+      maxRounds = 1;
+      _updateRoundsIndicator();
+      ul.className = 'collection';
+      for (i = 0; i < itemList.length; i++) {
+
+        // default values of each li element (sentence)
+        var li = document.createElement('li');//li
+        li.className = 'collection-item';
+        li.value = itemList[i].id;
+        li.eliminatedInRound = NOT_ELIMINATED;
+        li.style.defaultBackgroundColor = li.style.backgroundColor;
+        li.style.defaultForegroundColor = li.style.color;
+        li.style.userSelect = "none";
+
+        li.style.fontSize = "14pt";
+        li.style.lineHeight = "14pt";
+        li.style.padding = "0.3em";
+        li.style.marginLeft = "0.5em";
+        li.style.fontFamily = "sans";
+        li.style.textAlign = "justified";
+
+
+        li.appendChild(document.createTextNode(itemList[i].content));
+        ul.appendChild(li);
+      }
+    });
+
+    ipcRenderer.on('item:clear', function () {
+      console.log('items cleared')
+
+      prevRound.style.visibility = "hidden";
+      nextRound.style.visibility = "hidden";
+      nextFile.style.visibility = "hidden";
+      roundsIndicator.style.visibility = "hidden";
+      ul.className = '';
+      ul.innerHTML = '';
+
+    });
+
+    // triggered after loading the files
+    function filesSelected(e) {
+      filePaths = Array.from(e.target.files).map(f => f.path)
+      fileCount = filePaths.length;
+      ipcRenderer.send('filesSelected', filePaths);
+      prevRound.style.visibility = "visible";
+      nextRound.style.visibility = "visible";
+      nextFile.style.visibility = "visible";
+      roundsIndicator.style.visibility = "visible";
+
+    }
+
+    function getNextRound() {
+
+      if (deletedInRound.length == 0) {
+        const options = {
+          type: 'question',
+          buttons: ['Ok'],
+          defaultId: 2,
+          title: 'Done',
+          message: 'No rows eliminated in round'
+        };
+
+        dialog.showMessageBox(null, options);
+        return;
+      }
+
+      if (++round > maxRounds) {
+        maxRounds = round;
+      }
+
+      deletedInRound = [];
+      _updateRoundsIndicator();
+
+      // set items of the items eliminated in previoys round
+      var listofitems = ul.getElementsByTagName("li");
+      for (i = 0; i < listofitems.length; i++) {
+        setEliminatedStyle(listofitems[i], round);
+      }
+
+    }
+
+    function getPrevRound() {
+      if (round <= 1) {
+        return;
+      }
+      round--;
+      _updateRoundsIndicator();
+      deletedInRound = [];
+      // set items of the items eliminated in previoys round
+      var listofitems = ul.getElementsByTagName("li");
+      for (i = 0; i < listofitems.length; i++) {
+        setEliminatedStyle(listofitems[i], round);
+      }
+    }
+
+    function getNextFile() {
+
+
+      if (round < maxRounds) {
+        const options = {
+          type: 'question',
+          buttons: ['Ok', 'Cancel'],
+          defaultId: 2,
+          title: 'Done',
+          message: 'You are not in the most recent round. Are you sure to continue and ignore other rounds? '
+        };
+
+        const response = dialog.showMessageBox(null, options);
+
+        if (response == 'Cancel')
+          return;
+      }
+
+      var results = []
+      var listofitems = ul.getElementsByTagName("li");
+      if (deletedInRound.length > 0)
+        nextRoundNo = round + 1;
+      else nextRoundNo = round;
+
+      for (i = 0; i < listofitems.length; i++) {
+
+        if (listofitems[i].eliminatedInRound > round || listofitems[i].eliminatedInRound == 0 || listofitems[i].eliminatedInRound == 'undefined') {
+          listofitems[i].eliminatedInRound = nextRoundNo;
+        }
+        results[i] = listofitems[i].eliminatedInRound;
+      }
+      ipcRenderer.send('nextFile', results, round);
+    }
+
+    function toggleEliminated(item, currentRound) {
+
+      item.eliminatedInRound = item.eliminatedInRound > currentRound ? currentRound : 9999
+      if (item.eliminatedInRound == NOT_ELIMINATED) {
+        deletedInRound.pop(item.value);
+      }
+      setEliminatedStyle(item, currentRound);
+    }
+
+    function setEliminatedStyle(item, currentRound) {
+
+      //deleted in previous rounds -> hide
+      if (item.eliminatedInRound < currentRound) {
+        item.style.display = "none"
+      }
+      //deleted in current round -> line-thru
+      else if (item.eliminatedInRound == currentRound) {
+        item.style.display = ""
+        item.style.backgroundColor = "#d0d0d0";
+        item.style.color = "#575757";
+        item.style.textDecoration = "line-through";
+        deletedInRound.push(item.value);
+        return true;
+      }
+      // not eliminated yet.
+      else {
+        item.style.display = ""
+        item.style.backgroundColor = item.style.defaultBackgroundColor;
+        item.style.color = item.style.defaultForegroundColor;
+        item.style.textDecoration = "";
+      }
+      return false;
+    }
+
+    // toggled by clicking at sentences
+    function setEliminatedEvent(e) {
+      toggleEliminated(event.target, round)
+    }
+
+    function _updateRoundsIndicator() {
+      roundsIndicator.innerHTML = "Rounds: " + round + "/" + maxRounds;
+    }
+    function _getFontSizeNum(fontSizeStr) {
+      var fontsize_num = fontSizeStr.replace("Rs. ", "").replace(/,/g, "");
+      return parseInt(fontsize_num);
+    }
+
+    function textZoom(e) {
+      if (event.ctrlKey == true) {
+        for (let item of ul.children) {
+          if (event.wheelDeltaY < 0) { // Wheel down
+            item.style.fontSize = (_getFontSizeNum(item.style.fontSize) - 1) + "pt";
+            item.style.lineHeight = (_getFontSizeNum(item.style.fontSize) - 1) + "pt";
+          } else { // Wheel up
+
+            item.style.fontSize = (_getFontSizeNum(item.style.fontSize) + 1) + "pt";
+            item.style.lineHeight = (_getFontSizeNum(item.style.fontSize) + 1) + "pt";
+          }
+        }
+      }
+    }
+
+  </script>
+</body>
+
+</html>
