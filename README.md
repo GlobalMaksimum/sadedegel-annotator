@@ -4,6 +4,8 @@
 # Sadedegel Annotator
 [Electronjs](https://www.electronjs.org/) based labeling tool for extraction based summarization. Developed as a part of [Açık Kaynak Hackathon Programı 2020](https://www.acikhack.com/), in order to provide annotated data for [Sadedegel Library](https://github.com/GlobalMaksimum/sadedegel).
 
+📖 For more information, please refer to [sadedegel.ai](http://sadedegel.ai)
+
 [![License](https://img.shields.io/pypi/l/sadedegel)](https://github.com/GlobalMaksimum/sadedegel-annotator/blob/master/LICENSE)
 ![Last Commit](https://img.shields.io/github/last-commit/globalmaksimum/sadedegel-annotator?style=plastic&logo=GitHub)
 
