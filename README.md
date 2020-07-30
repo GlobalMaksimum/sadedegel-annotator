@@ -44,6 +44,8 @@ $ npm start
 
 ### How it works
 
+Sadedegel Annotator enables the user to summarize texts by eliminating sentences in rounds. At each round, user identifies the sentences that contain the least important information and selects them to be extracted from the text. For each sentence, the round it is eliminated in implies its level of importance.
+
 ### Sample Input 
 
 Input should be json file(s) in the following format:
@@ -57,3 +59,7 @@ Input should be json file(s) in the following format:
 ### Output
 
 Output is saved in [selectedInputDirectory]/labeled.
+
+## References
+
+* [Extraction Based Summarization](https://en.wikipedia.org/wiki/Automatic_summarization)
