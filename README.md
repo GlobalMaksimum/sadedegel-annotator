@@ -2,13 +2,37 @@
 
 
 # Sadedegel Annotator
-Electron based labeling tool for extraction based summarization.
+[Electronjs](https://www.electronjs.org/) based labeling tool for extraction based summarization. Developed as a part of [Açık Kaynak Hackathon Programı 2020](https://www.acikhack.com/), in order to provide annotated data for [Sadedegel Library](https://github.com/GlobalMaksimum/sadedegel).
+
+[![License](https://img.shields.io/pypi/l/sadedegel)](https://github.com/GlobalMaksimum/sadedegel-annotator/blob/master/LICENSE)
+![Last Commit](https://img.shields.io/github/last-commit/globalmaksimum/sadedegel-annotator?style=plastic&logo=GitHub)
+
+## 💬 Where to ask questions
+
+The SadedeGel project is maintained by [@globalmaksmum](https://github.com/GlobalMaksimum) AI team members
+[@dafajon](https://github.com/dafajon),
+[@askarbozcan](https://github.com/askarbozcan),
+[@mccakir](https://github.com/mccakir) and 
+[@husnusensoy](https://github.com/husnusensoy). 
+
+| Type                     | Platforms                                              |
+| ------------------------ | ------------------------------------------------------ |
+| 🚨 **Bug Reports**       | [GitHub Issue Tracker]                                 |
+| 🎁 **Feature Requests**  | [GitHub Issue Tracker]                                 |
+
+[github issue tracker]: https://github.com/GlobalMaksimum/sadedegel-annotator/issues
 
 ## Installation
 
-Install the dependencies
+Sadedegel Annotator is a cross-platform desktop application. 
+
+- **Supported Operating Systems**: macOS · Linux · Windows 
+
+To install Sadedegel Annotator and its dependencies:
 
 ```sh
+$ git clone https://github.com/GlobalMaksimum/sadedegel-annotator.git
+$ cd sadedegel-annotator
 $ npm install
 ```
 
@@ -17,6 +41,9 @@ $ npm install
 ```sh
 $ npm start
 ```
+
+### How it works
+
 ### Sample Input 
 
 Input should be json file(s) in the following format:
@@ -30,4 +57,3 @@ Input should be json file(s) in the following format:
 ### Output
 
 Output is saved in [selectedInputDirectory]/labeled.
-
